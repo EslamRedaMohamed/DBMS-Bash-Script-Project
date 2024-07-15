@@ -2,10 +2,10 @@
 if [ $# -gt 1 ]
 then
 
-# database start
+
 if [[ $1 == "database" ]]
 then
-
+# database start
 if [[ -e ~/dbms/dbs/$2 ]]
 then
 echo $1 already exist
@@ -13,9 +13,35 @@ else
 mkdir ~/dbms/dbs/$2
 echo $1 created
 fi
+#database end
+elif [[ $1 == "table" ]]
+then
+#table start
+if [[ $(pwd) == ~/dbms/dbs/* ]]
+then
+if [[ -e $2 ]]
+then
+echo table $2 is already exist
+
+else
+
+((length=$#-1))
+
+
+touch $2 
+echo ${@:3:$length} >> $2-schema
+fi
+
+else
+echo please use database
 
 fi
-#database end
+
+
+#table end
+else
+echo $1 is not a database object
+fi
 
 else
 echo please specifiy what object should be created 
