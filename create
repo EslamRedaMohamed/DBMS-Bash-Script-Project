@@ -1,0 +1,22 @@
+
+if [ $# -gt 1 ]
+then
+
+# database start
+if [[ $1 == "database" ]]
+then
+
+if [[ -e ~/dbms/dbs/$2 ]]
+then
+echo $1 already exist
+else
+mkdir ~/dbms/dbs/$2
+echo $1 created
+fi
+
+fi
+#database end
+
+else
+echo please specifiy what object should be created 
+fi
