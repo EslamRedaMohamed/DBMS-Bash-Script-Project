@@ -1,0 +1,10 @@
+if [[ $1 == tables ]]
+then
+if [[ $(pwd) == ~/dbms/dbs/* ]]
+then
+find . -type f ! -name "*-schema"
+else
+echo "please use db first"
+
+fi
+fi
