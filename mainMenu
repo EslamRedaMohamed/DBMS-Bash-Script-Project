@@ -1,0 +1,27 @@
+#!/bin/bash
+
+select var in Create_Database List_Databases Use_Database Drop_Database Exit
+do
+    case $var in
+        "Create_Database")
+            ./createDb
+            ;;
+        "List_Databases")
+            ./listDbs
+            ;;
+        "Use_Database")
+            ./useDb
+            ;;
+        "Drop_Database")
+            ./dropDb
+            ;;
+        "Exit")
+            echo "Exiting..."
+            exit
+            ;;
+        *)
+            echo "Invalid option"
+            ;;
+    esac
+done
+

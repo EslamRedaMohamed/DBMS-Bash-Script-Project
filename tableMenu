@@ -1,0 +1,38 @@
+#!/bin/bash
+PS3="DDL and DML on $1: "
+select var in Create_Table List_Tables Drop_Table Insert_into_Table Select_From_Table Delete_From_Table Update_Table Back_TO_mainMenu Exit
+do
+    case $var in
+        "Create_Table")
+            
+            ;;
+        "List_Tables")
+            
+            ;;
+        "Drop_Table")
+            
+            ;;
+        "Insert_into_Table")
+            
+            ;;
+        "Select_From_Table")
+            
+            ;;
+        "Delete_From_Table")
+            
+            ;;
+        "Update_Table")
+            
+            ;;
+        "Back_TO_mainMenu")
+            ./mainMenu
+            ;;
+        "Exit")
+            echo "Exiting..."
+            exit
+            ;;
+        *)
+            echo "Invalid option"
+            ;;
+    esac
+done

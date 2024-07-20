@@ -1,0 +1,24 @@
+#!/bin/bash
+#!/bin/bash
+
+read -p "Please Enter Database Name to use: " DBName
+
+# Attempt to change to the specified database directory
+cd ./dbs/$DBName 2> /dev/null
+
+# Check exit status of last command
+if [ $? -eq 0 ]; then
+    echo "----------------------------------"
+    echo "Connected to $DBName DataBase ^_^"
+    echo "----------------------------------"
+    cd ../../
+    ./tableMenu $DBName
+else
+    echo "----------------------------------"
+    echo "$DBName Database Not Found!"
+    echo "----------------------------------"
+    ./mainMenu
+fi
+
+
+
