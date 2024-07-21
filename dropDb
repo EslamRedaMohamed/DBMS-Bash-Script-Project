@@ -1,0 +1,16 @@
+#!/bin/bash
+
+read -p "Please Enter Database Name to Drop: " DBName
+
+if [ ! -d "./dbs/$DBName" ]; then
+    echo "---------------------------"
+    echo "$DBName Database Not Found!"
+    echo "---------------------------"
+    ./mainMenu
+else
+    rm -r "./dbs/$DBName"
+    echo "--------------------------------------------"
+    echo "Database $DBName Droped successfully -_-"
+    echo "--------------------------------------------"
+    ./mainMenu
+fi
