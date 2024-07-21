@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#add execute permissions for the user to all files and directories in the current directory
+chmod u+x *
+
 select var in Create_Database List_Databases Use_Database Drop_Database Exit
 do
     case $var in
