@@ -3,38 +3,79 @@
 # 1) if table exist in database
 # 2) if columns exist in table
 
-tablename=$4
+dbName="kareem"
 
+read -p "please enter table name:" tablename
 
-if [[ $(pwd) == ~/dbms/dbs/* ]]
+if [[ -f ~/dbms/dbs/$dbName/$tablename ]]
 then
-if [[ -f $tablename ]]
-then
 
-# searching for columns in db
-declare -i i=1
-declare -a tables=()
+noColumns=$(wc -l < ~/dbms/dbs/$dbName/'.metadata'/$tablename.meta)
 
-while [[ ${!i} != "from" ]]
+select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit
 do
 
-if [[ ${!i} =~ .*-schema ]]
-then
-echo ${!i}
+case $var in
+"AllColumns-AllRows")
+cat ~/dbms/dbs/$dbName/$tablename 
+;;
 
-else
-tables+=${!i}
-fi
+"SomeColumn-AllRows")
+read -p "Please enter cols names(space separated)" -a cols
+echo ${cols[@]}
 
 
-i=$((i+1))
+;;
+
+"SomeColumn-SomeRows")
+;;
+
+"AllColumn-SomeRows")
+;;
+
+"Exit")
+exit
+;;
+
+
+esac
 
 done
-echo $tables
-else
-echo table is not exist 
-fi
+
 
 else
-echo please use db first
+echo $tablename is not found
 fi
+
+# if [[ $(pwd) == ~/dbms/dbs/* ]]
+# then
+# if [[ -f $tablename ]]
+# then
+
+# # searching for columns in db
+# declare -i i=1
+# declare -a tables=()
+
+# while [[ ${!i} != "from" ]]
+# do
+
+# if [[ ${!i} =~ .*-schema ]]
+# then
+# echo ${!i}
+
+# else
+# tables+=${!i}
+# fi
+
+
+# i=$((i+1))
+
+# done
+# echo $tables
+# else
+# echo table is not exist 
+# fi
+
+# else
+# echo please use db first
+# fi

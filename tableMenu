@@ -16,7 +16,7 @@ do
             
             ;;
         "Select_From_Table")
-            
+            . ./selectTable $1
             ;;
         "Delete_From_Table")
             
