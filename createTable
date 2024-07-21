@@ -85,16 +85,16 @@ function createColumn() {
 
         # Write column names and data types to metadata file
         if (( i == 1 )); then
-            echo "$columnName:$dataType:pk;" >> "dbs/$DBName/.metadata/$tableName.meta"
+            echo "$columnName:$dataType:pk" >> "dbs/$DBName/.metadata/$tableName.meta"
         elif (( i == $columnNumber )); then
-            echo "$columnName:$dataType;" >> "dbs/$DBName/.metadata/$tableName.meta"
+            echo "$columnName:$dataType" >> "dbs/$DBName/.metadata/$tableName.meta"
             echo "-------------------------------"
             echo "Table $tableName created"
             echo "-------------------------------"
             ./tableMenu $DBName
             break
         else
-            echo -e "$columnName:$dataType;" >> "dbs/$DBName/.metadata/$tableName.meta"
+            echo -e "$columnName:$dataType" >> "dbs/$DBName/.metadata/$tableName.meta"
         fi
     done
 }

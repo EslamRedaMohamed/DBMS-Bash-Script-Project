@@ -13,7 +13,7 @@ do
             
             ;;
         "Insert_into_Table")
-            
+            . ./insertIntoTable $1
             ;;
         "Select_From_Table")
             

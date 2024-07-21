@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# The script expects a database name as its first argument.
+dbName=$1
+
+function insertIntoTable() {
+    # Using the passed database name.
+    DBName=$dbName
+    
+    # Prompt the user to enter the table name they want to insert data into.
+    echo "--------------------------------------------------------"
+    read -p "Enter Table Name you want to insert into: " tableName
+    echo "--------------------------------------------------------"
+    
+    # Define the paths to the metadata file and the actual table file.
+    metadataFile="dbs/$DBName/.metadata/$tableName.meta"
+    tableFile="dbs/$DBName/$tableName"
+    
+    # Check if the metadata file for the specified table exists.
+    if [[ ! -f $metadataFile ]]; then
+        echo "Table $tableName does not exist."
+        return
+    fi
+
+    # Declare Associative arrays(data structure for storing key-value pairs) to store column data types, constraints.
+    declare -A columnData
+    declare -A columnConstraints
+    columns=()
+
+    # Read metadata from the metadata file. 
+    # The file is expected to have lines in the format: columnName:dataType:constraint
+    while IFS=":" read -r columnName dataType constraint; do
+        columnData["$columnName"]="$dataType"
+        columnConstraints["$columnName"]="$constraint"
+        columns+=("$columnName")
+    done < "$metadataFile"
+
+    
+    # Prompt the user to enter data for each column in the table.
+    echo "----------------------------------"
+    echo "Enter data for table $tableName:"
+    echo "----------------------------------"
+    # Initialize an empty row to store the input data.
+    row=""
+    pkColumn=""
+    
+    # Iterate over each column in the columns array to maintain order.
+    for columnName in "${columns[@]}"; do
+        while true; do
+            # Prompt the user to enter data for the current column.
+            read -p "$columnName (${columnData[$columnName]}): " value
+
+            # Check if the current column is the primary key.
+            if [[ ${columnConstraints[$columnName]} == "pk" ]]; then
+                pkColumn=$columnName
+                # Ensure the primary key value is not empty.
+                if [[ -z "$value" ]]; then
+                    echo "Invalid input! $columnName cannot be null."
+                    continue
+                fi
+                # Ensure the primary key value is unique by checking if it already exists in the table.
+                if grep -q "^$value|" "$tableFile"; then
+                    echo "Duplicate entry! $columnName must be unique."
+                    continue
+                fi
+            fi
+
+            # Validate the input based on the data type.
+            if [[ ${columnData[$columnName]} == "int" && ! $value =~ ^[0-9]+$ ]]; then
+                echo "Invalid input! $columnName must be an integer."
+            elif [[ ${columnData[$columnName]} == "string" && ! $value =~ ^[a-zA-Z]+$ ]]; then
+                echo "Invalid input! $columnName must be a string with alphanumeric characters only."
+            else
+                break
+            fi
+        done
+        # Append the validated value to the row, separated by '|'.
+        row="$row$value|"
+    done
+
+    # Remove the trailing '|' from the row and append it to the table file.
+    echo "${row%|}" >> "$tableFile"
+    echo "------------------------------------"
+    echo "Data inserted into table $tableName."
+    echo "------------------------------------"
+}
+
+# Call the function to insert data into the table.
+insertIntoTable
