@@ -1,0 +1,40 @@
+# check validations
+# 1) if use database
+# 1) if table exist in database
+# 2) if columns exist in table
+
+tablename=$4
+
+
+if [[ $(pwd) == ~/dbms/dbs/* ]]
+then
+if [[ -f $tablename ]]
+then
+
+# searching for columns in db
+declare -i i=1
+declare -a tables=()
+
+while [[ ${!i} != "from" ]]
+do
+
+if [[ ${!i} =~ .*-schema ]]
+then
+echo ${!i}
+
+else
+tables+=${!i}
+fi
+
+
+i=$((i+1))
+
+done
+echo $tables
+else
+echo table is not exist 
+fi
+
+else
+echo please use db first
+fi
