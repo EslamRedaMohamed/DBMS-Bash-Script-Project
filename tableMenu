@@ -4,7 +4,7 @@ select var in Create_Table List_Tables Drop_Table Insert_into_Table Select_From_
 do
     case $var in
         "Create_Table")
-            
+            . ./createTable $1
             ;;
         "List_Tables")
             

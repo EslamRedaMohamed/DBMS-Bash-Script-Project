@@ -1,6 +1,4 @@
 #!/bin/bash
-#!/bin/bash
-
 read -p "Please Enter Database Name to use: " DBName
 
 # Attempt to change to the specified database directory

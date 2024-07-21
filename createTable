@@ -1,0 +1,102 @@
+#!/bin/bash
+dbName=$1
+
+function tableNameValidation() {
+    # Define disallowed special characters
+    disallowedChars='!@#$%^&*()/?\|'
+    DBName=$dbName
+    
+    while true; do
+        echo "------------------------------------------"
+        read -p "Enter Table Name To Create: " tableName
+        echo "------------------------------------------"
+        
+        # Check if table name ends with numbers
+        if [[ $tableName =~ [0-9]+$ ]]; then
+            echo "Invalid input! Name of table cannot be numbers!"
+        
+        # Check if table name contains disallowed special characters
+        elif [[ $tableName =~ [$disallowedChars] ]]; then
+            echo "Invalid input! Name of table cannot contain special characters!"
+        
+        # Check if table name is empty
+        elif [[ -z "$tableName" ]]; then
+            echo "Invalid input! Name of table cannot be empty!"
+        
+        # Check if table name contains spaces
+        elif [[ $tableName =~ \  ]]; then
+            echo "Invalid input! Name of table cannot contain spaces!"
+        
+        else
+            # Create table file and metadata directory
+            touch "dbs/$DBName/$tableName"
+            mkdir -p "dbs/$DBName/.metadata"
+            touch "dbs/$DBName/.metadata/$tableName.meta"
+            
+            createColumn
+            break
+        fi
+    done
+}
+
+###################################################################################################
+
+function createColumn() {
+    DBName=$dbName
+    tableName=$tableName # Ensure tableName is available here
+    echo "------------------------------------------------------------"
+    echo "Note: The first column is set as the primary key by default."
+    echo "------------------------------------------------------------"
+    
+    # Prompt user for the number of columns
+    while true; do
+        read -p "Enter number of columns: " columnNumber
+        if [[ $columnNumber =~ ^[0-9]+$ ]]; then
+            break
+        else
+            echo "Invalid input! Enter only numbers."
+            columnNumber="" # Reset columnNumber if the input is invalid
+        fi
+    done
+
+    # Prompt for column names and data types
+    for (( i = 1; i <= $columnNumber; i++ )); do
+        while true; do
+            echo "---------------------------------"
+            read -p "Enter column $i name: " columnName
+            echo "---------------------------------"
+            if [[ -z $columnName ]] || [[ ! $columnName =~ ^[a-zA-Z]+[a-zA-Z0-9]*$ ]]; then
+                echo "Column name must start with a letter and contain only letters and numbers."
+            else
+                break
+            fi
+        done
+
+        while true; do
+            echo "----------------------------------------------------------"
+            read -p "Enter data type for $columnName (int/string): " dataType
+            echo "-----------------------------------------------------------"
+            if [[ $dataType == "int" || $dataType == "string" ]]; then
+                break
+            else
+                echo "Invalid data type! Enter 'int' or 'string'."
+            fi
+        done
+
+        # Write column names and data types to metadata file
+        if (( i == 1 )); then
+            echo "$columnName:$dataType:pk;" >> "dbs/$DBName/.metadata/$tableName.meta"
+        elif (( i == $columnNumber )); then
+            echo "$columnName:$dataType;" >> "dbs/$DBName/.metadata/$tableName.meta"
+            echo "-------------------------------"
+            echo "Table $tableName created"
+            echo "-------------------------------"
+            ./tableMenu $DBName
+            break
+        else
+            echo -e "$columnName:$dataType;" >> "dbs/$DBName/.metadata/$tableName.meta"
+        fi
+    done
+}
+
+tableNameValidation
