@@ -7,13 +7,13 @@
 # 2)compare column names and get order array
 # 3)get data from table with needed cols
 
-dbName="kareem"
+dbName=$1
 
 
 read -p "please enter table name:" tablename
 
-metaFile=~/dbms/dbs/$dbName/.metadata/$tablename.meta
-tableFile=~/dbms/dbs/$dbName/$tablename
+metaFile=./dbs/$dbName/.metadata/$tablename.meta
+tableFile=./dbs/$dbName/$tablename
 
 
 
@@ -65,7 +65,7 @@ IFS=','; orders_str="${orders[*]}"; unset IFS
 if [[ $error == "" ]]
 then
 awk -v orders="$orders_str" '
-    BEGIN{FS=";" ;split(orders, arr, ",")}
+    BEGIN{FS="|" ;split(orders, arr, ",")}
     {
         
     

@@ -23,7 +23,7 @@ do
             
             ;;
         "Update_Table")
-            
+            . ./updateTable $1
             ;;
         "Back_TO_mainMenu")
             ./mainMenu

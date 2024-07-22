@@ -1,0 +1,111 @@
+dbName=house
+read  -p  "Enter table you want to update: " tableName
+metaFile=./dbs/$dbName/.metadata/$tableName.meta
+tableFile=./dbs/$dbName/$tableName
+# function to take column and get column number
+getColumnNumber() {
+    column=$1
+
+    colNum=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
+    if($1==col)
+    {print NR}
+}' $metaFile)
+    type=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
+    if($1==col)
+    {print $2}
+}' $metaFile)
+
+    echo $colNum "," $type
+}
+
+
+read  -p  "Enter column you want to update: " column
+
+                                                     
+getcol=$(getColumnNumber $column)
+
+colNum=$(echo "$getcol" | cut -d ',' -f 1)
+type=$(echo "$getcol" | cut -d ',' -f 2)
+if [ -z $colNum ]
+then
+echo $column not found
+
+else
+read -p "Enter new value you want: " new
+typecheck=""
+if [[ $type =~ "string" ]]
+then
+typecheck=^[A-Za-Z]+$
+else
+typecheck=^[0-9]+$
+fi
+if [[ ! $new =~ $typecheck ]]
+then
+echo please follow type of value $typecheck
+else
+read -p "Enter condition column that (column=value) " ccolumn
+
+getccol=$(getColumnNumber $ccolumn)
+ccolNum=$(echo "$getccol" | cut -d ',' -f 1)
+ctype=$(echo "$getccol" | cut -d ',' -f 2)
+
+ctypecheck=""
+if [[ $ctype =~ "string" ]]
+then
+ctypecheck=^[A-Za-Z]+$
+else
+ctypecheck=^[0-9]+$
+fi
+if [ -z $ccolNum ]
+then
+echo $ccolumn not found
+else
+read -p "Enter condition value that (column=value) " cvalue
+
+if [[ ! $cvalue =~ $ctypecheck ]]
+then
+echo please follow type of value $ctypecheck
+else
+
+declare -a condition=($ccolNum $cvalue $new)
+IFS=',';coditionStr="${condition[*]}";unset IFS
+
+
+cat $tableFile | awk -v condition=$coditionStr '
+BEGIN{FS="|";split(condition, arr, ",");}
+{
+ccol=arr[1];
+cval=arr[2];
+new=arr[3];
+
+if($ccol==cval){
+$ccol=new
+line=""
+
+for (i = 1; i <= NF; i++){
+line=line $i 
+
+if(i!=NF)
+{
+line=line "|"
+}
+
+
+}
+
+
+print line;
+}else{
+print $0;
+}
+}
+' | cat > ./output
+cp ./output $tableFile 
+rm -r ./output
+
+fi
+
+fi
+
+fi
+fi

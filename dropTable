@@ -1,7 +1,7 @@
 dbName=$1
 read -p "Please Enter Table Name: " tableName
-metadata=~/dbms/dbs/$dbName/.metadata/$tableName.meta
-datafile=~/dbms/dbs/$dbName/$tableName
+metadata=./dbs/$dbName/.metadata/$tableName.meta
+datafile=./dbs/$dbName/$tableName
 if [ -f $metadata ]
 then
 echo $(rm -r $metadata $datafile)
