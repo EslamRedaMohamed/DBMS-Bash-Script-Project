@@ -7,7 +7,7 @@
 # 2)compare column names and get order array
 # 3)get data from table with needed cols
 
-dbName=$1
+dbName="house"
 
 
 read -p "please enter table name:" tablename
@@ -15,31 +15,91 @@ read -p "please enter table name:" tablename
 metaFile=./dbs/$dbName/.metadata/$tablename.meta
 tableFile=./dbs/$dbName/$tablename
 
+getColumnNumber() {
+    column=$1
+
+    colNum=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
+    if($1==col)
+    {print NR}
+    }' $metaFile)
+    type=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
+    if($1==col)
+    {print $2}
+    }' $metaFile)
+
+    echo $colNum "," $type
+}
+
+
+getAllColumnsSomeRows(){
+    read -p "Enter condition column that (column=value) " ccolumn
+
+    getccol=$(getColumnNumber $ccolumn)
+    ccolNum=$(echo "$getccol" | cut -d ',' -f 1)
+    ctype=$(echo "$getccol" | cut -d ',' -f 2)
+
+    ctypecheck=""
+    if [[ $ctype =~ "string" ]]
+    then
+    ctypecheck=^[A-Za-Z]+$
+    else
+    ctypecheck=^[0-9]+$
+    fi
+    if [ -z $ccolNum ]
+    then
+    echo $ccolumn not found
+    else
+    read -p "Enter condition value that (column=value) " cvalue
+
+    if [[ ! $cvalue =~ $ctypecheck ]]
+    then
+    echo please follow type of value $ctypecheck
+    else
+
+    declare -a condition=($ccolNum $cvalue)
+    IFS=',';coditionStr="${condition[*]}";unset IFS
+
+
+    cat $tableFile | awk -v condition=$coditionStr '
+    BEGIN{FS="|";split(condition, arr, ",");}
+    {
+    ccol=arr[1];
+    cval=arr[2];
+
+    if($ccol==cval){
+    line=""
+    for (i = 1; i <= NF; i++){
+    line=line $i 
+    if(i!=NF)
+    {
+    line=line "|"
+    }
+
+
+    }
+
+
+    print line;
+    }
+    }
+    ' | cat 
+    fi
+
+    fi
 
 
 
-if [[ -f ~/dbms/dbs/$dbName/$tablename ]]
-then
+}
 
-noColumns=$(wc -l < ~/dbms/dbs/$dbName/'.metadata'/$tablename.meta)
+getSomeColumnsAllRows(){
 
-select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit
-do
-
-case $var in
-"AllColumns-AllRows")
-cat ~/dbms/dbs/$dbName/$tablename 
-;;
-
-"SomeColumn-AllRows")
-
-read -p "Please enter cols names(space separated)" -a cols
-# echo ${cols[@]}
-declare -a orders=()
-error=""
-for col in ${cols[@]}
-do
-item=$(awk -v Column=$col '
+    read -p "Please enter cols names(space separated)" -a cols
+    # echo ${cols[@]}
+    declare -a orders=()
+    error=""
+    for col in ${cols[@]}
+    do
+    item=$(awk -v Column=$col '
     BEGIN{FS=":";x=0}
     {
 
@@ -49,22 +109,22 @@ item=$(awk -v Column=$col '
         }
     }
     END{print x}
-' $metaFile)
-orders[${#orders[@]}]=$item 
+    ' $metaFile)
+    orders[${#orders[@]}]=$item 
 
 
-if [[ $item -eq 0 ]]
-then
-error="invalid input please enter valid column names!"
-fi
-# Convert array to a string with a known separator (e.g., comma)
-done
-IFS=','; orders_str="${orders[*]}"; unset IFS
+    if [[ $item -eq 0 ]]
+    then
+    error="invalid input please enter valid column names!"
+    fi
+    # Convert array to a string with a known separator (e.g., comma)
+    done
+    IFS=','; orders_str="${orders[*]}"; unset IFS
 
-#  -v orders=$orders 
-if [[ $error == "" ]]
-then
-awk -v orders="$orders_str" '
+    #  -v orders=$orders 
+    if [[ $error == "" ]]
+    then
+    awk -v orders="$orders_str" '
     BEGIN{FS="|" ;split(orders, arr, ",")}
     {
         
@@ -87,19 +147,48 @@ awk -v orders="$orders_str" '
         
     }
     
-' $tableFile
-else
-echo $error
-fi
+    ' $tableFile
+    else
+    echo $error
+    fi
+
+}
 
 
+if [[ -f ~/dbms/dbs/$dbName/$tablename ]]
+then
 
+noColumns=$(wc -l < ~/dbms/dbs/$dbName/'.metadata'/$tablename.meta)
+
+select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit
+do
+
+metaFile=./dbs/$dbName/.metadata/$tablename.meta
+tableFile=./dbs/$dbName/$tablename
+
+case $var in
+"AllColumns-AllRows")
+cat ~/dbms/dbs/$dbName/$tablename 
+;;
+
+"SomeColumn-AllRows")
+
+getSomeColumnsAllRows
 ;;
 
 "SomeColumn-SomeRows")
+
+getAllColumnsSomeRows > ./output
+tableFile=./output
+getSomeColumnsAllRows
+rm -r ./output
+
 ;;
 
 "AllColumn-SomeRows")
+
+getAllColumnsSomeRows
+
 ;;
 
 "Exit")

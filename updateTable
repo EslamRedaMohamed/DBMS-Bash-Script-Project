@@ -1,4 +1,4 @@
-dbName=house
+dbName=$1
 read  -p  "Enter table you want to update: " tableName
 metaFile=./dbs/$dbName/.metadata/$tableName.meta
 tableFile=./dbs/$dbName/$tableName
