@@ -20,7 +20,6 @@ do
             . ./selectTable $1
             ;;
         "Delete_From_Table")
-            . ./hello
             . ./deleteFromTable $1
             ;;
         "Update_Table")
