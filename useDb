@@ -1,6 +1,7 @@
 #!/bin/bash
+echo "---------------------------------------------"
 read -p "Please Enter Database Name to use: " DBName
-
+echo "---------------------------------------------"
 # Attempt to change to the specified database directory
 cd ./dbs/$DBName 2> /dev/null
 

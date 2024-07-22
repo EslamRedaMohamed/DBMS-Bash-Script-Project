@@ -20,7 +20,8 @@ do
             
             ;;
         "Delete_From_Table")
-            
+            . ./hello
+            . ./deleteFromTable $1
             ;;
         "Update_Table")
             
@@ -30,7 +31,7 @@ do
             ;;
         "Exit")
             echo "Exiting..."
-            exit
+            break
             ;;
         *)
             echo "Invalid option"

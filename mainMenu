@@ -1,26 +1,28 @@
 #!/bin/bash
 
-#add execute permissions for the user to all files and directories in the current directory
+#To apply the u+x permission to all files in the current directory
 chmod u+x *
+
+PS3="welcom To our DBMS: "
 
 select var in Create_Database List_Databases Use_Database Drop_Database Exit
 do
     case $var in
         "Create_Database")
-            ./createDb
+            . ./createDb
             ;;
         "List_Databases")
-            ./listDbs
+            . ./listDbs
             ;;
         "Use_Database")
-            ./useDb
+            . ./useDb
             ;;
         "Drop_Database")
-            ./dropDb
+            . ./dropDb
             ;;
         "Exit")
             echo "Exiting..."
-            exit
+            break
             ;;
         *)
             echo "Invalid option"
