@@ -7,7 +7,7 @@
 # 2)compare column names and get order array
 # 3)get data from table with needed cols
 
-dbName="house"
+dbName=$1
 
 
 read -p "please enter table name:" tablename
