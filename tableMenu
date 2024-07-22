@@ -10,7 +10,7 @@ do
             
             ;;
         "Drop_Table")
-            
+            . ./dropTable $1
             ;;
         "Insert_into_Table")
             

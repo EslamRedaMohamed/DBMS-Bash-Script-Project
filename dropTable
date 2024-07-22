@@ -1,0 +1,11 @@
+dbName=$1
+read -p "Please Enter Table Name: " tableName
+metadata=~/dbms/dbs/$dbName/.metadata/$tableName.meta
+datafile=~/dbms/dbs/$dbName/$tableName
+if [ -f $metadata ]
+then
+echo $(rm -r $metadata $datafile)
+echo table $tableName dropped successfully
+else
+echo table $tableName is not exist  
+fi
