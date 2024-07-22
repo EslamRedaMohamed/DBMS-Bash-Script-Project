@@ -1,0 +1,14 @@
+#! /bin/bash
+
+# Check if the database directory has any files or directories inside it(not empty)
+if [ -n "$(ls dbs/$1)" ]; then
+    echo "Existing Tables in $1 Database: "
+    echo "------------------------------------"
+    # List the contents of the database directory
+    ls dbs/$1
+    echo "------------------------------------"
+else
+    echo "------------------------------------"
+    echo "NO Tables found in $1 Database! "
+    echo "------------------------------------"
+fi

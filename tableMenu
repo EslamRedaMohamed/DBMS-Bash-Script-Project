@@ -7,13 +7,14 @@ do
             . ./createTable $1
             ;;
         "List_Tables")
+            . ./listTable $1
             
             ;;
         "Drop_Table")
             . ./dropTable $1
             ;;
         "Insert_into_Table")
-            
+            . ./insertIntoTable $1
             ;;
         "Select_From_Table")
             . ./selectTable $1

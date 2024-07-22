@@ -1,0 +1,3 @@
+roomId:int:pk
+roomName:string
+bedsNum:int
