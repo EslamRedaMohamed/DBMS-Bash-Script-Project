@@ -1,0 +1,118 @@
+# check validations
+# 1) if use database
+# 1) if table exist in database
+# 2) if columns exist in table
+
+# 1)please enter column names:
+# 2)compare column names and get order array
+# 3)get data from table with needed cols
+
+dbName="kareem"
+
+
+read -p "please enter table name:" tablename
+
+metaFile=~/dbms/dbs/$dbName/.metadata/$tablename.meta
+tableFile=~/dbms/dbs/$dbName/$tablename
+
+
+
+
+if [[ -f ~/dbms/dbs/$dbName/$tablename ]]
+then
+
+noColumns=$(wc -l < ~/dbms/dbs/$dbName/'.metadata'/$tablename.meta)
+
+select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit
+do
+
+case $var in
+"AllColumns-AllRows")
+cat ~/dbms/dbs/$dbName/$tablename 
+;;
+
+"SomeColumn-AllRows")
+
+read -p "Please enter cols names(space separated)" -a cols
+# echo ${cols[@]}
+declare -a orders=()
+error=""
+for col in ${cols[@]}
+do
+item=$(awk -v Column=$col '
+    BEGIN{FS=":";x=0}
+    {
+
+        if(Column == $1){
+        x=NR;
+        
+        }
+    }
+    END{print x}
+' $metaFile)
+orders[${#orders[@]}]=$item 
+
+
+if [[ $item -eq 0 ]]
+then
+error="invalid input please enter valid column names!"
+fi
+# Convert array to a string with a known separator (e.g., comma)
+done
+IFS=','; orders_str="${orders[*]}"; unset IFS
+
+#  -v orders=$orders 
+if [[ $error == "" ]]
+then
+awk -v orders="$orders_str" '
+    BEGIN{FS=";" ;split(orders, arr, ",")}
+    {
+        
+    
+    # Print array elements
+    str="";
+    for (i in arr) {
+    if(arr[i]!=0){
+        str= $arr[i] " | " str;
+    }
+    else{
+
+    printf error please enter valid columns;
+    exit 1;
+    }
+    }
+    print str
+
+        
+        
+    }
+    
+' $tableFile
+else
+echo $error
+fi
+
+
+
+;;
+
+"SomeColumn-SomeRows")
+;;
+
+"AllColumn-SomeRows")
+;;
+
+"Exit")
+exit
+;;
+
+
+esac
+
+done
+
+
+else
+echo $tablename is not found
+fi
+
