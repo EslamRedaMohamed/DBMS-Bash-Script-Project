@@ -1,10 +1,17 @@
 dbName=$1
 
 
+
 read -p "please enter table name:" tablename
 
 metaFile=./dbs/$dbName/.metadata/$tablename.meta
 tableFile=./dbs/$dbName/$tablename
+
+if [ ! -f $tableFile ]
+then
+echo table $tablename is not found 
+. ./selectTable $dbName
+fi
 
 getColumnNumber() {
     column=$1
@@ -35,16 +42,25 @@ getAllColumnsSomeRows(){
     ctypecheck=^[A-Za-Z]+$
     else
     ctypecheck=^[0-9]+$
+
     fi
-    if [ -z $ccolNum ]
+
+    if [[ $ccolNum == "" ]]
     then
-    echo $ccolumn not found
+    echo "column $ccolomn is not found"
+    return 1
+    
+    
     else
     read -p "Enter condition value that (column=value) " cvalue
 
     if [[ ! $cvalue =~ $ctypecheck ]]
     then
-    echo please follow type of value $ctypecheck
+
+    echo "please follow type of value $ctype"
+    return 1
+    
+
     else
 
     declare -a condition=($ccolNum $cvalue)
@@ -76,7 +92,9 @@ getAllColumnsSomeRows(){
     ' | cat 
     fi
 
+    
     fi
+
 
 
 
@@ -146,10 +164,10 @@ getSomeColumnsAllRows(){
 }
 
 
-if [[ -f ~/dbms/dbs/$dbName/$tablename ]]
+if [[ -f $tableFile ]]
 then
 
-noColumns=$(wc -l < ~/dbms/dbs/$dbName/'.metadata'/$tablename.meta)
+noColumns=$(wc -l < $metaFile)
 
 select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit
 do
@@ -159,7 +177,7 @@ tableFile=./dbs/$dbName/$tablename
 
 case $var in
 "AllColumns-AllRows")
-cat ~/dbms/dbs/$dbName/$tablename 
+cat $tableFile 
 ;;
 
 "SomeColumn-AllRows")
@@ -169,10 +187,18 @@ getSomeColumnsAllRows
 
 "SomeColumn-SomeRows")
 
-getAllColumnsSomeRows > ./output
+output=$(getAllColumnsSomeRows)
+
+if [ $? -ne 1 ]
+then
+echo $output > ./output
 tableFile=./output
 getSomeColumnsAllRows
 rm -r ./output
+
+else
+echo $output
+fi
 
 ;;
 
