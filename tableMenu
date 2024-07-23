@@ -20,7 +20,7 @@ do
             . ./selectTable $1
             ;;
         "Delete_From_Table")
-            
+            . ./deleteFromTable $1
             ;;
         "Update_Table")
             . ./updateTable $1
@@ -30,7 +30,7 @@ do
             ;;
         "Exit")
             echo "Exiting..."
-            exit
+            break
             ;;
         *)
             echo "Invalid option"
