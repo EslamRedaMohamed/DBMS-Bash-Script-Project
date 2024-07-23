@@ -1,5 +1,10 @@
 dbName=$1
 read  -p  "Enter table you want to update: " tableName
+if [ ! -f ./dbs/$dbName/$tableName ]
+then
+echo table $tableName is not found
+exit
+fi
 metaFile=./dbs/$dbName/.metadata/$tableName.meta
 tableFile=./dbs/$dbName/$tableName
 # function to take column and get column number
@@ -26,9 +31,9 @@ getcol=$(getColumnNumber $column)
 
 colNum=$(echo "$getcol" | cut -d ',' -f 1)
 type=$(echo "$getcol" | cut -d ',' -f 2)
-if [ -z $colNum ]
+if [[ $colNum == ""  ]]
 then
-echo $column not found
+echo column $column is not found
 
 else
 read -p "Enter new value you want: " new
@@ -67,7 +72,7 @@ then
 echo please follow type of value $ctypecheck
 else
 
-declare -a condition=($ccolNum $cvalue $new)
+declare -a condition=($ccolNum $cvalue $colNum $new)
 IFS=',';coditionStr="${condition[*]}";unset IFS
 
 
@@ -76,10 +81,11 @@ BEGIN{FS="|";split(condition, arr, ",");}
 {
 ccol=arr[1];
 cval=arr[2];
-new=arr[3];
+col=arr[3]
+new=arr[4];
 
 if($ccol==cval){
-$ccol=new
+$col=new
 line=""
 
 for (i = 1; i <= NF; i++){
