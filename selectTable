@@ -76,8 +76,8 @@ getAllColumnsSomeRows() {
             declare -a condition=($ccolNum $cvalue)
             IFS=','; conditionStr="${condition[*]}"; unset IFS
             # Use awk to filter and print rows based on the condition.
-            output=$(cat $tableFile | awk -v condition=$conditionStr '
-            BEGIN{FS="|"; split(condition, arr, ",");}
+            echo "$(cat $tableFile | awk -v condition=$conditionStr '
+            BEGIN{FS="|";RS="\n"; split(condition, arr, ",");}
             {
                 ccol = arr[1];
                 cval = arr[2];
@@ -92,15 +92,8 @@ getAllColumnsSomeRows() {
                     }
                     print line;
                 }
-            }' )
-            if [ -z $output ]
-            then
-            echo "no data"
-            return 1
-
-            else
-            echo $output
-            fi
+            }' | cat)"
+           
         fi
     fi
 }
@@ -174,16 +167,38 @@ if [[ -f $tableFile ]]; then
                 ;;
 
             "SomeColumn-SomeRows")
+                # getAllColumnsSomeRows > ./output
+                # output=$(cat ./output)
+                # if [[ $output == "" ]]
+                # then
+                # echo "no data"
+                # else
+                # if [ $? -ne 1 ]; then
+                    
+                #     tableFile=./output
+                #     getSomeColumnsAllRows
+                #     rm -r ./output
+                # else
+                #     echo "$output"
+                #     rm -r ./output
+                # fi
+                # fi
+                
                 output=$(getAllColumnsSomeRows)
+                
+                if [ $? -ne 1 ]
+                then
+                echo "$output" > ./output
+                tableFile=./output
+                getSomeColumnsAllRows
+                rm -r ./output
 
-                if [ $? -ne 1 ]; then
-                    echo "$output" > ./output
-                    tableFile=./output
-                    getSomeColumnsAllRows
-                    rm -r ./output
                 else
-                    echo "$output"
+                echo $output    
                 fi
+                
+
+               
                 ;;
 
             "AllColumn-SomeRows")
