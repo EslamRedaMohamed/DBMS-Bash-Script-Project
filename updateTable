@@ -1,117 +1,135 @@
+#!/bin/bash
+
+# The script expects a database name as its first argument.
 dbName=$1
-read  -p  "Enter table you want to update: " tableName
-if [ ! -f ./dbs/$dbName/$tableName ]
-then
-echo table $tableName is not found
-exit
+
+# Prompt the user to enter the table name they want to update.
+echo "---------------------------------------------------------------------------------------"
+read -p "Enter table you want to update: " tableName
+echo "---------------------------------------------------------------------------------------"
+
+# Check if the table file exists.
+if [ ! -f "./dbs/$dbName/$tableName" ]; then
+    echo "---------------------------------------------------------------------------------------"
+    echo "Table $tableName is not found"
+    echo "---------------------------------------------------------------------------------------"
+    exit
 fi
-metaFile=./dbs/$dbName/.metadata/$tableName.meta
-tableFile=./dbs/$dbName/$tableName
-# function to take column and get column number
+
+# Define paths for the metadata file and the table file.
+metaFile="./dbs/$dbName/.metadata/$tableName.meta"
+tableFile="./dbs/$dbName/$tableName"
+
+# Function to get the column number and type from the metadata file.
 getColumnNumber() {
     column=$1
 
-    colNum=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
-    if($1==col)
-    {print NR}
-}' $metaFile)
-    type=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
-    if($1==col)
-    {print $2}
-}' $metaFile)
+    # Get column number.
+    colNum=$(awk -v col="$column" 'BEGIN {RS="\n"; FS=":"} {if ($1 == col) print NR}' "$metaFile")
+    # Get column type.
+    type=$(awk -v col="$column" 'BEGIN {RS="\n"; FS=":"} {if ($1 == col) print $2}' "$metaFile")
 
-    echo $colNum "," $type
+    echo "$colNum,$type"
 }
 
+# Prompt the user to enter the column they want to update.
+echo "---------------------------------------------------------------------------------------"
+read -p "Enter column you want to update: " column
+echo "---------------------------------------------------------------------------------------"
 
-read  -p  "Enter column you want to update: " column
-
-                                                     
-getcol=$(getColumnNumber $column)
-
+# Get the column number and type.
+getcol=$(getColumnNumber "$column")
 colNum=$(echo "$getcol" | cut -d ',' -f 1)
 type=$(echo "$getcol" | cut -d ',' -f 2)
-if [[ $colNum == ""  ]]
-then
-echo column $column is not found
 
+# Check if the column exists.
+if [ -z "$colNum" ]; then
+    echo "---------------------------------------------------------------------------------------"
+    echo "Column $column is not found"
+    echo "---------------------------------------------------------------------------------------"
 else
-read -p "Enter new value you want: " new
-typecheck=""
-if [[ $type =~ "string" ]]
-then
-typecheck=^[A-Za-Z]+$
-else
-typecheck=^[0-9]+$
-fi
-if [[ ! $new =~ $typecheck ]]
-then
-echo please follow type of value $typecheck
-else
-read -p "Enter condition column that (column=value) " ccolumn
+    # Prompt the user to enter the new value.
+    echo "---------------------------------------------------------------------------------------"
+    read -p "Enter new value you want($column($type)): " new
+    echo "---------------------------------------------------------------------------------------"
 
-getccol=$(getColumnNumber $ccolumn)
-ccolNum=$(echo "$getccol" | cut -d ',' -f 1)
-ctype=$(echo "$getccol" | cut -d ',' -f 2)
+    # Determine the type check based on the column type.
+    typecheck=""
+    if [[ "$type" == "string" ]]; then
+        typecheck='^[A-Za-Z]+$'
+    else
+        typecheck='^[0-9]+$'
+    fi
 
-ctypecheck=""
-if [[ $ctype =~ "string" ]]
-then
-ctypecheck=^[A-Za-Z]+$
-else
-ctypecheck=^[0-9]+$
-fi
-if [ -z $ccolNum ]
-then
-echo $ccolumn not found
-else
-read -p "Enter condition value that (column=value) " cvalue
+    # Validate the new value against the column type.
+    if [[ ! "$new" =~ $typecheck ]]; then
+        echo "---------------------------------------------------------------------------------------"
+        echo "Please follow type of value $type"!!
+        echo "---------------------------------------------------------------------------------------"
+    else
+        # Prompt the user to enter the condition column.
+        echo "---------------------------------------------------------------------------------------"
+        read -p "Enter condition column Name that : " ccolumn
+        echo "---------------------------------------------------------------------------------------"
 
-if [[ ! $cvalue =~ $ctypecheck ]]
-then
-echo please follow type of value $ctypecheck
-else
+        getccol=$(getColumnNumber "$ccolumn")
+        ccolNum=$(echo "$getccol" | cut -d ',' -f 1)
+        ctype=$(echo "$getccol" | cut -d ',' -f 2)
 
-declare -a condition=($ccolNum $cvalue $colNum $new)
-IFS=',';coditionStr="${condition[*]}";unset IFS
+        # Determine the type check based on the condition column type.
+        ctypecheck=""
+        if [[ "$ctype" == "string" ]]; then
+            ctypecheck='^[A-Za-Z]+$'
+        else
+            ctypecheck='^[0-9]+$'
+        fi
 
+        # Check if the condition column exists.
+        if [ -z "$ccolNum" ]; then
+            echo "---------------------------------------------------------------------------------------"
+            echo "$ccolumn not found!"
+            echo "---------------------------------------------------------------------------------------"
+        else
+            # Prompt the user to enter the condition value.
+            echo "---------------------------------------------------------------------------------------"
+            read -p "Enter condition column value that($ccolumn($ctype)): " cvalue
+            echo "---------------------------------------------------------------------------------------"
 
-cat $tableFile | awk -v condition=$coditionStr '
-BEGIN{FS="|";split(condition, arr, ",");}
-{
-ccol=arr[1];
-cval=arr[2];
-col=arr[3]
-new=arr[4];
+            # Validate the condition value against the column type.
+            if [[ ! "$cvalue" =~ $ctypecheck ]]; then
+                echo "---------------------------------------------------------------------------------------"
+                echo "Please follow column type $ctype" !!
+                echo "---------------------------------------------------------------------------------------"
+            else
+                # Prepare the condition for awk.
+                condition=($ccolNum "$cvalue" $colNum "$new")
+                IFS=','; conditionStr="${condition[*]}"; unset IFS
 
-if($ccol==cval){
-$col=new
-line=""
+                # Update the table file with the new value.
+                awk -v condition="$conditionStr" '
+                BEGIN {
+                    FS = "|";
+                    OFS = "|";
+                    split(condition, arr, ",");
+                }
+                {
+                    ccol = arr[1];
+                    cval = arr[2];
+                    col = arr[3];
+                    new = arr[4];
 
-for (i = 1; i <= NF; i++){
-line=line $i 
+                    if ($ccol == cval) {
+                        $col = new;
+                    }
+                    print $0;
+                }' "$tableFile" > ./output
 
-if(i!=NF)
-{
-line=line "|"
-}
-
-
-}
-
-
-print line;
-}else{
-print $0;
-}
-}
-' | cat > ./output
-cp ./output $tableFile 
-rm -r ./output
-
-fi
-
-fi
-
-fi
+                # Replace the original table file with the updated content.
+                mv ./output "$tableFile"
+                echo "---------------------------------------------------------------------------------------"
+                echo "Row with $ccolumn = $cvalue updated in table $tableName."
+                echo "---------------------------------------------------------------------------------------"
+            fi
+        fi
+    fi
 fi
