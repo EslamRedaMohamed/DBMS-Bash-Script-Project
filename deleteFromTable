@@ -61,8 +61,9 @@ function deleteFromTable() {
             return
         fi
         
-        # Delete the row with the specified primary key value.
+        # filters out lines that match the pattern 
         grep -v "^$pkValue|" "$tableFile" > "$tableFile.tmp"
+        # Move the temporary file to replace the original table file.
         mv "$tableFile.tmp" "$tableFile"
         echo "------------------------------------"
         echo "Row with $pkColumn = $pkValue deleted from table $tableName."
@@ -80,5 +81,5 @@ function deleteFromTable() {
     fi
 }
 
-# Call the function to delete data from the table.
+
 deleteFromTable

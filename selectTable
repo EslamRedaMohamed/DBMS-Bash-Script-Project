@@ -1,18 +1,37 @@
+#!/bin/bash
+
+# Store the database name from the first argument.
 dbName=$1
 
+# Prompt user to enter the table name.
+echo "-----------------------------------------------"
+read -p "Please enter table name: " tablename
+echo "-----------------------------------------------"
 
-read -p "please enter table name:" tablename
-
+# Define paths for the metadata file and the table file.
 metaFile=./dbs/$dbName/.metadata/$tablename.meta
 tableFile=./dbs/$dbName/$tablename
 
+# Check if the table file exists.
+if [ ! -f $tableFile ]; then
+    echo "-----------------------------------------------"
+    echo "Table $tablename is not found."
+    echo "-----------------------------------------------"
+    # Return to the select table menu.
+    . ./selectTable $dbName
+fi
+
+# Function to get the column number and type from the metadata file.
 getColumnNumber() {
     column=$1
 
+    # Get column number.
     colNum=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
     if($1==col)
     {print NR}
     }' $metaFile)
+
+    # Get column type.
     type=$(awk -v col=$column 'BEGIN{RS="\n" ; FS=":"}{
     if($1==col)
     {print $2}
@@ -21,178 +40,166 @@ getColumnNumber() {
     echo $colNum "," $type
 }
 
+# Function to get and print all columns with some rows based on a condition.
+getAllColumnsSomeRows() {
+    echo "-----------------------------------------------"
+    read -p "Enter condition column name: " ccolumn
+    echo "-----------------------------------------------"
 
-getAllColumnsSomeRows(){
-    read -p "Enter condition column that (column=value) " ccolumn
-
+    # Get the column number and type for the condition column.
     getccol=$(getColumnNumber $ccolumn)
     ccolNum=$(echo "$getccol" | cut -d ',' -f 1)
     ctype=$(echo "$getccol" | cut -d ',' -f 2)
 
+    # Determine the regex pattern based on the column type.
     ctypecheck=""
-    if [[ $ctype =~ "string" ]]
-    then
-    ctypecheck=^[A-Za-Z]+$
+    if [[ $ctype =~ "string" ]]; then
+        ctypecheck="^[A-Za-z]+$"  # Requires at least one letter
     else
-    ctypecheck=^[0-9]+$
-    fi
-    if [ -z $ccolNum ]
-    then
-    echo $ccolumn not found
-    else
-    read -p "Enter condition value that (column=value) " cvalue
-
-    if [[ ! $cvalue =~ $ctypecheck ]]
-    then
-    echo please follow type of value $ctypecheck
-    else
-
-    declare -a condition=($ccolNum $cvalue)
-    IFS=',';coditionStr="${condition[*]}";unset IFS
-
-
-    cat $tableFile | awk -v condition=$coditionStr '
-    BEGIN{FS="|";split(condition, arr, ",");}
-    {
-    ccol=arr[1];
-    cval=arr[2];
-
-    if($ccol==cval){
-    line=""
-    for (i = 1; i <= NF; i++){
-    line=line $i 
-    if(i!=NF)
-    {
-    line=line "|"
-    }
-
-
-    }
-
-
-    print line;
-    }
-    }
-    ' | cat 
+        ctypecheck="^[0-9]+$"  # Requires only digits
     fi
 
+    # Check if the condition column exists.
+    if [[ -z $ccolNum ]]; then
+        echo "-----------------------------------------------"
+        echo "Column $ccolumn is not found."
+        return 1
+    else
+        echo "-----------------------------------------------"
+        read -p "Enter condition column value : " cvalue
+        echo "-----------------------------------------------"
+        # Validate the condition value against the column type.
+        if [[ -z $cvalue ]]; then
+        echo "-----------------------------------------------"
+        echo "Value cannot be empty."
+        return 1
+        # Validate the condition value against the column type.
+        elif [[ ! $cvalue =~ $ctypecheck ]]; then
+            echo "-----------------------------------------------"
+            echo "Please follow the type of value: $ctype."
+            return 1
+        else
+            # Prepare the condition for awk.
+            declare -a condition=($ccolNum $cvalue)
+            IFS=','; conditionStr="${condition[*]}"; unset IFS
+            # Use awk to filter and print rows based on the condition.
+            cat $tableFile | awk -v condition=$conditionStr '
+            BEGIN{FS="|"; split(condition, arr, ",");}
+            {
+                ccol = arr[1];
+                cval = arr[2];
+                
+                if ($ccol == cval) {
+                    line = ""
+                    for (i = 1; i <= NF; i++) {
+                        line = line $i
+                        if (i != NF) {
+                            line = line "|"
+                        }
+                    }
+                    print line;
+                }
+            }' | cat
+        fi
     fi
-
-
-
 }
 
-getSomeColumnsAllRows(){
+# Function to get and print some columns with all rows.
+getSomeColumnsAllRows() {
+    echo "-----------------------------------------------"
+    read -p "Please enter column names (space separated): " -a cols
+    echo "-----------------------------------------------"
 
-    read -p "Please enter cols names(space separated)" -a cols
-    # echo ${cols[@]}
+    # Initialize arrays and variables.
     declare -a orders=()
     error=""
-    for col in ${cols[@]}
-    do
-    item=$(awk -v Column=$col '
-    BEGIN{FS=":";x=0}
-    {
 
-        if(Column == $1){
-        x=NR;
-        
+    # Determine column numbers for the specified columns.
+    for col in ${cols[@]}; do
+        item=$(awk -v Column=$col '
+        BEGIN{FS=":"; x=0}
+        {
+            if (Column == $1) {
+                x = NR;
+            }
         }
-    }
-    END{print x}
-    ' $metaFile)
-    orders[${#orders[@]}]=$item 
+        END{print x}
+        ' $metaFile)
+        orders[${#orders[@]}]=$item 
 
-
-    if [[ $item -eq 0 ]]
-    then
-    error="invalid input please enter valid column names!"
-    fi
-    # Convert array to a string with a known separator (e.g., comma)
+        if [[ $item -eq 0 ]]; then
+            error="Invalid input. Please enter valid column names!"
+        fi
     done
+
+    # Convert array to a string with a known separator (e.g., comma).
     IFS=','; orders_str="${orders[*]}"; unset IFS
 
-    #  -v orders=$orders 
-    if [[ $error == "" ]]
-    then
-    awk -v orders="$orders_str" '
-    BEGIN{FS="|" ;split(orders, arr, ",")}
-    {
-        
-    
-    # Print array elements
-    str="";
-    for (i in arr) {
-    if(arr[i]!=0){
-        str= $arr[i] " | " str;
-    }
-    else{
-
-    printf error please enter valid columns;
-    exit 1;
-    }
-    }
-    print str
-
-        
-        
-    }
-    
-    ' $tableFile
+    # Print the selected columns for all rows.
+    if [[ $error == "" ]]; then
+        awk -v orders="$orders_str" '
+        BEGIN{FS="|" ; split(orders, arr, ",")}
+        {
+            str = ""
+            for (i in arr) {
+                if (arr[i] != 0) {
+                    str = $arr[i] " | " str;
+                } else {
+                    printf "Error: Please enter valid columns.\n";
+                    exit 1;
+                }
+            }
+            print str
+        }' $tableFile
     else
-    echo $error
+        echo "-----------------------------------------------"
+        echo $error
+        echo "-----------------------------------------------"
     fi
-
 }
 
+# Main menu for selecting different options.
+if [[ -f $tableFile ]]; then
+    select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit; do
+        case $var in
+            "AllColumns-AllRows")
+                cat $tableFile
+                ;;
 
-if [[ -f ~/dbms/dbs/$dbName/$tablename ]]
-then
+            "SomeColumn-AllRows")
+                getSomeColumnsAllRows
+                ;;
 
-noColumns=$(wc -l < ~/dbms/dbs/$dbName/'.metadata'/$tablename.meta)
+            "SomeColumn-SomeRows")
+                output=$(getAllColumnsSomeRows)
 
-select var in AllColumns-AllRows SomeColumn-AllRows SomeColumn-SomeRows AllColumn-SomeRows Exit
-do
+                if [ $? -ne 1 ]; then
+                    echo "$output" > ./output
+                    tableFile=./output
+                    getSomeColumnsAllRows
+                    rm -r ./output
+                else
+                    echo "$output"
+                fi
+                ;;
 
-metaFile=./dbs/$dbName/.metadata/$tablename.meta
-tableFile=./dbs/$dbName/$tablename
+            "AllColumn-SomeRows")
+                getAllColumnsSomeRows
+                ;;
 
-case $var in
-"AllColumns-AllRows")
-cat ~/dbms/dbs/$dbName/$tablename 
-;;
+            "Exit")
+                exit
+                ;;
 
-"SomeColumn-AllRows")
-
-getSomeColumnsAllRows
-;;
-
-"SomeColumn-SomeRows")
-
-getAllColumnsSomeRows > ./output
-tableFile=./output
-getSomeColumnsAllRows
-rm -r ./output
-
-;;
-
-"AllColumn-SomeRows")
-
-getAllColumnsSomeRows
-
-;;
-
-"Exit")
-exit
-;;
-
-
-esac
-
-done
-
-
+            *)
+                echo "-----------------------------------------------"
+                echo "Invalid option. Please select a valid option."
+                echo "-----------------------------------------------"
+                ;;
+        esac
+    done
 else
-echo $tablename is not found
+    echo "-----------------------------------------------"
+    echo "Table $tablename is not found."
+    echo "-----------------------------------------------"
 fi
-
