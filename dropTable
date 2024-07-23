@@ -1,11 +1,28 @@
+#! bin/bash
+
 dbName=$1
-read -p "Please Enter Table Name: " tableName
-metadata=./dbs/$dbName/.metadata/$tableName.meta
-datafile=./dbs/$dbName/$tableName
-if [ -f $metadata ]
-then
-echo $(rm -r $metadata $datafile)
-echo table $tableName dropped successfully
+
+# Prompt user for the table name
+echo "-----------------------------------------------"
+read -p "Please Enter Table Name To drop: " tableName
+echo "-----------------------------------------------"
+
+# Define file paths for metadata and data
+metadata="./dbs/$dbName/.metadata/$tableName.meta"
+datafile="./dbs/$dbName/$tableName"
+
+# Check if the metadata file exists
+if [ -f "$metadata" ]; then
+    # Remove both metadata and data files
+    rm -r "$metadata" "$datafile"
+    
+    # Provide success message
+    echo "-----------------------------------------------"
+    echo "Table $tableName dropped successfully."
+    echo "-----------------------------------------------"
 else
-echo table $tableName is not exist  
+    # Provide error message if the table does not exist
+    echo "-----------------------------------------------"
+    echo "Table $tableName does not exist."
+    echo "-----------------------------------------------"
 fi
