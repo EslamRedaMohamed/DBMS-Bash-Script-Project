@@ -1,12 +1,3 @@
-# check validations
-# 1) if use database
-# 1) if table exist in database
-# 2) if columns exist in table
-
-# 1)please enter column names:
-# 2)compare column names and get order array
-# 3)get data from table with needed cols
-
 dbName=$1
 
 
