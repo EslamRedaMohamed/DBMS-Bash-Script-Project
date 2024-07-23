@@ -111,6 +111,7 @@ else
                     FS = "|";
                     OFS = "|";
                     split(condition, arr, ",");
+                    count=0
                 }
                 {
                     ccol = arr[1];
@@ -120,14 +121,18 @@ else
 
                     if ($ccol == cval) {
                         $col = new;
+                        count++;
                     }
                     print $0;
-                }' "$tableFile" > ./output
+                }
+                END{print count;}' "$tableFile" > ./output
 
                 # Replace the original table file with the updated content.
+                count=$(cat ./output | tail -1)
+                echo "$(sed '$d' "./output")" > ./output
                 mv ./output "$tableFile"
                 echo "---------------------------------------------------------------------------------------"
-                echo "Row with $ccolumn = $cvalue updated in table $tableName."
+                echo "$count Rows with $ccolumn = $cvalue updated in table $tableName."
                 echo "---------------------------------------------------------------------------------------"
             fi
         fi
