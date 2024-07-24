@@ -34,7 +34,6 @@ Once connected to a specific database, the user can perform the following operat
    Deletes records from a specific table based on user-defined criteria.
 7. **Update Table**  
    Updates records in a specific table based on user-defined criteria.
-
 ### Prerequisites
 - A Unix-like operating system (Linux, macOS)
 - Bash shell

@@ -93,7 +93,6 @@ getAllColumnsSomeRows() {
                     print line;
                 }
             }' | cat)"
-           
         fi
     fi
 }
@@ -167,23 +166,6 @@ if [[ -f $tableFile ]]; then
                 ;;
 
             "SomeColumn-SomeRows")
-                # getAllColumnsSomeRows > ./output
-                # output=$(cat ./output)
-                # if [[ $output == "" ]]
-                # then
-                # echo "no data"
-                # else
-                # if [ $? -ne 1 ]; then
-                    
-                #     tableFile=./output
-                #     getSomeColumnsAllRows
-                #     rm -r ./output
-                # else
-                #     echo "$output"
-                #     rm -r ./output
-                # fi
-                # fi
-                
                 output=$(getAllColumnsSomeRows)
                 
                 if [ $? -ne 1 ]
@@ -197,8 +179,6 @@ if [[ -f $tableFile ]]; then
                 echo $output    
                 fi
                 
-
-               
                 ;;
 
             "AllColumn-SomeRows")
